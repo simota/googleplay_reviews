@@ -34,11 +34,11 @@ module GooglePlayReviews
 
     def login
       load_login_page
-      sleep(SLEEP_TIME)
+      sleep(1)
       input_email
-      sleep(SLEEP_TIME)
+      sleep(1)
       input_password
-      sleep(SLEEP_TIME)
+      sleep(1)
       self
     end
 
