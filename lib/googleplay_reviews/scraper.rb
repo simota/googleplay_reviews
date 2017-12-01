@@ -12,6 +12,7 @@ module GooglePlayReviews
   class Scraper
     SLEEP_TIME = 3
     REVIEW_URL = 'https://play.google.com/apps/publish'
+    ACCOUNT_URL = 'https://play.google.com/apps/publish/?hl=ja&account='
 
     def initialize(email, password)
       @email = email
@@ -24,6 +25,7 @@ module GooglePlayReviews
       @headless = Headless.new
       @headless.start
     end
+
 
     def create_browser
       Capybara.register_driver :selenium_firefox do |app|
@@ -42,6 +44,13 @@ module GooglePlayReviews
       self
     end
 
+    def change_account(account_id)
+      @account_id = account_id
+      url = ACCOUNT_URL + @account_id
+      @browser.visit(url)
+      sleep(SLEEP_TIME)
+    end
+
     def scrape(package, max_page = nil)
       @browser.visit(page_url(package))
       sleep(SLEEP_TIME)
@@ -58,7 +67,12 @@ module GooglePlayReviews
         yield(items, page) if block_given?
         reviews.concat(items)
       end
+      quit
       reviews
+    end
+
+    def quit
+      @browser.driver.browser.quit
     end
 
     def parse(html)
@@ -89,11 +103,14 @@ module GooglePlayReviews
     end
 
     def next_button
-      @browser.find('button[aria-label="次のページ"]')
+      @browser.find('button[aria-label="次のページ"]') rescue nil
     end
 
     def page_url(package)
-      "#{REVIEW_URL}/#ReviewsPlace:p=#{package}"
+      if @account_id.nil?
+        "#{REVIEW_URL}/#ReviewsPlace:p=#{package}"
+      end
+      "#{ACCOUNT_URL}#{@account_id}#ReviewsPlace:p=#{package}"
     end
   end
 end
